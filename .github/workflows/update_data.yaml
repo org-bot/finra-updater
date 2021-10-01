@@ -1,0 +1,32 @@
+name: Update data
+
+on:
+  schedule:
+    - cron: '0 22 */1 * *'
+  workflow_dispatch:
+
+jobs:
+  Update:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.ACTION_TOKEN }}
+
+      - uses: actions/checkout@v2
+        with:
+          token: ${{ secrets.ACTION_TOKEN }}
+          repository: "org-bot/finra"
+          path: "repo"
+
+      - name: Run data update scripts
+        run: python3 scripts/update.py
+
+      - name: Commit & push data
+        run: |
+          cd repo
+          git config user.email "tradingview-eod-bot@tradingview.com"
+          git config user.name  "tradingview-eod-bot"
+          git add .
+          git commit -m "simulated data update"
+          git push
