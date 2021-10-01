@@ -20,7 +20,9 @@ jobs:
           path: "repo"
 
       - name: Run data update scripts
-        run: python3 scripts/update.py
+        run: |
+          pip3 install asyncio aiohttp ijson aiofile pandas numpy
+          python3 scripts/update.py
 
       - name: Commit & push data
         run: |
