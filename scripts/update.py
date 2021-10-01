@@ -79,8 +79,8 @@ async def updateSource(source):
         symbol = symbol.replace("/", "_").upper()
         directory = "../repo/data/finra/"
         filename = symbol + "_" + source[0] + "_SHORT"
-        symbolData = symbolData["ShortVolume"]
-        values = symbolData["ShortVolume"]
+        symbolData = symbolData["ShortVolume"].to_frame()
+        values = symbolData.copy()
         symbolData.insert(1, 'high', values.copy(), True)
         symbolData.insert(2, 'low', values.copy(), True)
         symbolData.insert(3, 'close', values.copy(), True)
@@ -95,7 +95,9 @@ async def updateSource(source):
                 symbolData = storedData.append(symbolData)
 
         async with async_open(directory + filename + ".csv", "w+") as f:
-            symbolData.to_csv(f, header=False, date_format="%Y%m%dT")
+            s = StringIO()
+            symbolData.to_csv(s, header=False, date_format="%Y%m%dT")
+            await f.write(s.getvalue())
 
         # filename = symbol + source[0] + "TOTAL"
         # with open("../data/" + filename + ".csv", "w") as f:
