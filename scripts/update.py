@@ -70,14 +70,14 @@ async def updateSource(source):
 
             data = data.append(values)
         date = date + timedelta(days=1)
-    print(data)
+    directory = "../repo/data/finra/"
+    os.makedirs(directory, exist_ok=True)
     for  symbol in symbols:
         symbolData = data[data["Symbol"] == symbol]
         symbolData = symbolData.copy()
         symbolData["Date"] = pd.to_datetime(symbolData["Date"], format="%Y%m%d")
         symbolData.set_index("Date", inplace=True)
         symbol = symbol.replace("/", "_").upper()
-        directory = "../repo/data/finra/"
         filename = symbol + "_" + source[0] + "_SHORT"
         symbolData = symbolData["ShortVolume"].to_frame()
         values = symbolData.copy()
