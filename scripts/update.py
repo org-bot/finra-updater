@@ -42,7 +42,7 @@ async def updateAll():
 
 async def updateSource(source):
     symbols = set()
-    date = datetime.today() + timedelta(days=-3)
+    date = datetime.today() + timedelta(days=-20)
     data = pd.DataFrame()
     while date < datetime.today():
         if date.weekday() < 5:
