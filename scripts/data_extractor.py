@@ -81,7 +81,7 @@ async def processSource(source):
         symbolData.set_index("Date", inplace=True)
         symbol = symbol.replace("/", "_")
         filename = symbol + "_" + source[0] + "_SHORT"
-        with open("../data/finra/" + filename + ".csv", "w+") as f:
+        with open("./data/finra/" + filename + ".csv", "w+") as f:
             symbolData["ShortVolume"].to_csv(f, header=False, date_format="%Y%m%dT")
 
         # filename = symbol + source[0] + "TOTAL"
