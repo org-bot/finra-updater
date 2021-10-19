@@ -42,7 +42,7 @@ async def updateAll():
 
 async def updateSource(source):
     symbols = set()
-    date = datetime.today() + timedelta(days=-2)
+    date = datetime.today() + timedelta(days=-3)
     data = pd.DataFrame()
     while date < datetime.today():
         if date.weekday() < 5:
@@ -70,7 +70,7 @@ async def updateSource(source):
 
             data = data.append(values)
         date = date + timedelta(days=1)
-    directory = "../repo/data/finra/"
+    directory = "./repo/data/finra/"
     os.makedirs(directory, exist_ok=True)
     for  symbol in symbols:
         symbolData = data[data["Symbol"] == symbol]
