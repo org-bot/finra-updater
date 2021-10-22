@@ -42,9 +42,9 @@ async def updateAll():
 
 async def updateSource(source):
     symbols = set()
-    date = datetime.today() + timedelta(days=-25)
+    date = datetime.today() + timedelta(days=-3)
     data = pd.DataFrame()
-    while date < (datetime.today() + timedelta(days=-10)):
+    while date < datetime.today():
         if date.weekday() < 5:
             url = BASE_URL + source[2] + date.strftime("%Y%m%d") + ".txt"
             r = requests.get(url)
