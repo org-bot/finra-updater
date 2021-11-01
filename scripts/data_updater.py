@@ -1,8 +1,10 @@
 import asyncio
 import os
+import urllib.parse
 
 import aiohttp
 import ijson
+import re
 import requests
 
 from datetime import datetime
@@ -41,7 +43,7 @@ async def updateAll():
         await asyncio.gather(*tasks)
 
 async def updateSource(source):
-    symbols = set()
+    tickers = set()
     date = datetime.today() + timedelta(days=-3)
     data = pd.DataFrame()
     while date < datetime.today():
@@ -52,33 +54,28 @@ async def updateSource(source):
             values = pd.read_csv(StringIO(r.text), sep='|', engine='python')
             index = 0
             while index < len(values) - 1:
-                symbols.add(values.loc[index].Symbol)
-
-                # ticker = values.loc[index].Symbol + source[0] + "TOTAL"
-                # desc = values.loc[index].Symbol + source[0] + "Total Volume"
-                # if ticker not in tickerSet:
-                #     tickerSet.add(ticker)
-                #     tickers[ticker] = desc
-                #
-                # if "ShortExemptVolume" in values.columns:
-                #     ticker = values.loc[index].Symbol + source[0] + "SHORT_EXEMPT"
-                #     desc = values.loc[index].Symbol + source[0] + "Short Exempt Volume"
-                #     if ticker not in tickerSet:
-                #         tickerSet.add(ticker)
-                #         tickers[ticker] = desc
+                tickers.add(values.loc[index].Symbol)
                 index += 1
 
             data = data.append(values)
         date = date + timedelta(days=1)
     directory = "./repo/data/finra/"
     os.makedirs(directory, exist_ok=True)
-    for  symbol in symbols:
-        symbolData = data[data["Symbol"] == symbol]
+    for ticker in tickers:
+        symbolData = data[data["Symbol"] == ticker]
         symbolData = symbolData.copy()
         symbolData["Date"] = pd.to_datetime(symbolData["Date"], format="%Y%m%d")
         symbolData.set_index("Date", inplace=True)
-        symbol = symbol.replace("/", "_").upper()
-        filename = symbol + "_" + source[0] + "_SHORT"
+
+        symbol = ticker.replace('/WS', '/W')
+        if re.search(r'/[A-VX-Z]', symbol) is not None:
+            symbol = symbol.replace("/", ".")
+        symbol = symbol.replace("p", "/P")
+        symbol = symbol.replace("r", "/R")
+        symbol = symbol.replace("w", "/W/I")
+
+        filename = symbol + "_" + source[0] + "_SHORT.csv"
+        filename = urllib.parse.quote(filename, safe='')
         symbolData = symbolData["ShortVolume"].to_frame()
         values = symbolData.copy()
         symbolData.insert(1, 'high', values.copy(), True)
@@ -92,9 +89,12 @@ async def updateSource(source):
                 storedData = pd.read_csv(StringIO(d), names=["Date", *symbolData.columns.values])
                 storedData["Date"] = storedData["Date"].map(lambda x: datetime.strptime(x, "%Y%m%dT"))
                 storedData.set_index("Date", inplace=True)
-                symbolData = storedData.append(symbolData)
+                symbolData = pd.concat([storedData, symbolData])
+                # Taken from here: https://stackoverflow.com/a/34297689
+                # As more efficient way to deal with duplicates
+                symbolData = symbolData[~symbolData.index.duplicated(keep='first')]
 
-        async with async_open(directory + filename + ".csv", "w+") as f:
+        async with async_open(directory + filename, "w") as f:
             s = StringIO()
             symbolData.to_csv(s, header=False, date_format="%Y%m%dT")
             await f.write(s.getvalue())
@@ -108,31 +108,6 @@ async def updateSource(source):
         #     with open("../data/" + filename + ".csv", "w") as f:
         #         symbolData["ShortExemptVolume"].to_csv(f, header=False, date_format="%Y%m%dT")
         print(symbol + " -------- updated")
-
-def tickers():
-    path = os.path.join('..', 'repo', 'symbol_info', 'finra.json')
-    with open(path, 'r', encoding="UTF-8") as f:
-        objects = ijson.items(f, 'ticker.item')
-        tickers = (o for o in objects)
-        resultSet = set()
-        resultList = []
-        for t in tickers:
-            parts = t.split("_")[0]
-            t = "_".join(parts[0:-2])
-            resultSet.add(t)
-            resultList.append(t)
-
-        return resultSet, resultList
-
-def descriptions():
-    path = os.path.join('..', 'repo', 'symbol_info', 'finra.json')
-    with open(path, 'r', encoding="UTF-8") as f:
-        objects = ijson.items(f, 'description.item')
-        descriptions = (o for o in objects)
-        result = []
-        for t in descriptions:
-            result.append(t)
-        return result
 
 if __name__ == "__main__":
     main()

@@ -2,7 +2,7 @@ name: Update data
 
 on:
   schedule:
-    - cron: '0 0 */1 * *'
+    - cron: '0 22 */1 * *'
   workflow_dispatch:
 
 jobs:
@@ -22,7 +22,7 @@ jobs:
       - name: Run data update scripts
         run: |
           pip3 install asyncio aiohttp ijson aiofile pandas numpy
-          python3 scripts/data_updater.py
+          python3 scripts/symbol_info_updater.py
 
       - name: Commit & push data
         run: |
