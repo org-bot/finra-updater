@@ -30,5 +30,4 @@ jobs:
           git config user.email "tradingview-eod-bot@tradingview.com"
           git config user.name  "tradingview-eod-bot"
           git add .
-          git commit -m "finra data update"
-          git push
+          git diff-index --quiet HEAD || git commit -m "finra symbol info update" && git push origin HEAD
