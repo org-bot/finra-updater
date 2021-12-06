@@ -40,12 +40,12 @@ def main():
                 symbol = symbol.replace("p", "/P")
                 symbol = symbol.replace("r", "/R")
                 symbol = symbol.replace("w", "/W/I")
-
+                ticker = symbol
                 symbol = symbol + "_" + SOURCE[0] + "_SHORT"
 
                 if symbol not in symbols:
                     symbols.append(symbol)
-                    descs.append(symbol + ' FINRA Consolidated NMS Short Volume')
+                    descs.append(ticker + ' FINRA Consolidated NMS Short Volume')
                 index += 1
         date = date + timedelta(days=1)
 
