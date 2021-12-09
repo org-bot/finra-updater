@@ -93,8 +93,8 @@ async def processSource(source):
         symbolData.insert(3, 'close', values.copy(), True)
         symbolData.insert(4, 'volume', np.zeros(values.size, dtype=int), True)
 
-        desc = symbol + " " + source[1] + " Short Volume"
-        symbol = symbol + "_" + source[0] + "_SHORT"
+        desc = symbol + " Short Sale Volume"
+        symbol = symbol + "_SHORT_VOLUME"
         if symbol not in symbols:
             symbols.append(symbol)
             descriptions.append(desc)

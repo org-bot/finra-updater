@@ -74,7 +74,7 @@ async def updateSource(source):
         symbol = symbol.replace("r", "/R")
         symbol = symbol.replace("w", "/W/I")
 
-        filename = symbol + "_" + source[0] + "_SHORT.csv"
+        filename = symbol + "_SHORT_VOLUME.csv"
         filename = urllib.parse.quote(filename, safe='')
         symbolData = symbolData["ShortVolume"].to_frame()
         values = symbolData.copy()
