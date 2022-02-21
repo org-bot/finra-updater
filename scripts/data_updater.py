@@ -97,7 +97,7 @@ async def updateSource(source):
                 # Taken from here: https://stackoverflow.com/a/34297689
                 # As more efficient way to deal with duplicates
                 symbolData = symbolData[~symbolData.index.duplicated(keep='first')]
-                symbolData.sort()
+                symbolData = symbolData.sort_values(by='index')
 
         async with async_open(directory + filename, "w") as f:
             s = StringIO()
