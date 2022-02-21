@@ -44,7 +44,10 @@ async def updateAll():
 
 async def updateSource(source):
     tickers = set()
-    date = datetime.today() + timedelta(days=-3)
+    days = os.getenv("DAYS")
+    if days is None: days = 3
+    if days < 3: days = 3
+    date = datetime.today() + timedelta(days=-days)
     data = pd.DataFrame()
     while date < datetime.today():
         if date.weekday() < 5:

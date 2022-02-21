@@ -4,6 +4,10 @@ on:
   schedule:
     - cron: '0 0 */1 * *'
   workflow_dispatch:
+    inputs:
+      days: 
+        description: "Number of days to update"
+        required: false
 
 jobs:
   Update:
@@ -20,6 +24,8 @@ jobs:
           path: "repo"
 
       - name: Run data update scripts
+        env: 
+          DAYS: ${{ github.event.inputs.days }}
         run: |
           pip3 install asyncio aiohttp ijson aiofile pandas numpy
           python3 scripts/data_updater.py
