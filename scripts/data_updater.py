@@ -45,7 +45,7 @@ async def updateAll():
 async def updateSource(source):
     tickers = set()
     daysENV = os.getenv("DAYS")
-    if daysENV is None: days = 3
+    if daysENV is None or daysENV == '': days = 3
     else: days = int(daysENV)
     if days < 3: days = 3
     date = datetime.today() + timedelta(days=-days)
