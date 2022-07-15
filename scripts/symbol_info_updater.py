@@ -1,5 +1,6 @@
 import asyncio
 import json
+import math
 import os
 import re
 
@@ -34,6 +35,10 @@ def main():
             while index < len(values) - 1:
 
                 ticker = values.loc[index].Symbol
+                #special case for NA ticker, looks like a bug in csv parsing
+                if type(ticker) is not str and math.isnan(ticker):
+                    ticker = "NA"
+
                 symbol = ticker.replace('/WS', '/W')
                 if re.search(r'/[A-VX-Z]', symbol) is not None:
                     symbol = symbol.replace("/", ".")

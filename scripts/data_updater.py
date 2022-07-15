@@ -1,4 +1,5 @@
 import asyncio
+import math
 import os
 import urllib.parse
 
@@ -66,6 +67,10 @@ async def updateSource(source):
     directory = "./repo/data/finra/"
     os.makedirs(directory, exist_ok=True)
     for ticker in tickers:
+        # special case for NA ticker, looks like a bug in csv parsing
+        if type(ticker) is not str and math.isnan(ticker):
+            ticker = "NA"
+
         symbolData = data[data["Symbol"] == ticker]
         symbolData = symbolData.copy()
         symbolData["Date"] = pd.to_datetime(symbolData["Date"], format="%Y%m%d")
