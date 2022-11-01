@@ -2,5 +2,5 @@
    "currency": "UNIT",
    "description": %s,
    "pricescale":100,
-   "symbol": %s,
+   "symbol": %s
 }
