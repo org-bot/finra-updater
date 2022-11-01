@@ -56,7 +56,7 @@ def main():
 
     with open("symbol_info_template.json", "r") as template_file:
         symbol_info = template_file.read()
-        symbol_info = symbol_info % (json.dumps(descs), json.dumps(symbols), json.dumps(symbols))
+        symbol_info = symbol_info % (json.dumps(descs), json.dumps(symbols))
         with open("repo/symbol_info/finra.json", "w") as symbol_info_file:
             symbol_info_file.write(symbol_info)
 
