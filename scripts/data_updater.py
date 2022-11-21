@@ -27,11 +27,14 @@ SOURCES = (
     ("NMS", "NMS", "CNMSshvol")
 )
 
-def main():
-    loop = asyncio.get_event_loop()
-    loop.run_until_complete(updateAll())
 
-async def updateAll():
+def main():
+    loop = asyncio.new_event_loop()
+    asyncio.set_event_loop(loop)
+    asyncio.run(update_all())
+
+
+async def update_all():
     async with aiohttp.ClientSession() as session:
         tasks = [
             # updateSource(SOURCES[0]),
@@ -39,16 +42,20 @@ async def updateAll():
             # updateSource(SOURCES[2]),
             # updateSource(SOURCES[3]),
             # updateSource(SOURCES[4]),
-            updateSource(SOURCES[5]),
+            update_source(SOURCES[5]),
         ]
         await asyncio.gather(*tasks)
 
-async def updateSource(source):
+
+async def update_source(source):
     tickers = set()
-    daysENV = os.getenv("DAYS")
-    if daysENV is None or daysENV == '': days = 3
-    else: days = int(daysENV)
-    if days < 3: days = 3
+    days_env = os.getenv("DAYS")
+    if days_env is None or days_env == '':
+        days = 3
+    else:
+        days = int(days_env)
+    if days < 3:
+        days = 3
     date = datetime.today() + timedelta(days=-days)
     data = pd.DataFrame()
     while date < datetime.today():
@@ -71,10 +78,10 @@ async def updateSource(source):
         if type(ticker) is not str and math.isnan(ticker):
             ticker = "NA"
 
-        symbolData = data[data["Symbol"] == ticker]
-        symbolData = symbolData.copy()
-        symbolData["Date"] = pd.to_datetime(symbolData["Date"], format="%Y%m%d")
-        symbolData.set_index("Date", inplace=True)
+        symbol_data = data[data["Symbol"] == ticker]
+        symbol_data = symbol_data.copy()
+        symbol_data["Date"] = pd.to_datetime(symbol_data["Date"], format="%Y%m%d")
+        symbol_data.set_index("Date", inplace=True)
 
         symbol = ticker.replace('/WS', '/W')
         if re.search(r'/[A-VX-Z]', symbol) is not None:
@@ -85,39 +92,42 @@ async def updateSource(source):
 
         filename = symbol + "_SHORT_VOLUME.csv"
         filename = urllib.parse.quote(filename, safe='')
-        symbolData = symbolData["ShortVolume"].to_frame()
-        values = symbolData.copy()
-        symbolData.insert(1, 'high', values.copy(), True)
-        symbolData.insert(2, 'low', values.copy(), True)
-        symbolData.insert(3, 'close', values.copy(), True)
-        symbolData.insert(4, 'volume', np.zeros(values.size, dtype=int), True)
+        symbol_data = symbol_data["ShortVolume"].to_frame()
+        values = symbol_data.copy()
+        symbol_data.insert(1, 'high', values.copy(), True)
+        symbol_data.insert(2, 'low', values.copy(), True)
+        symbol_data.insert(3, 'close', values.copy(), True)
+        symbol_data.insert(4, 'volume', np.zeros(values.size, dtype=int), True)
 
         if path.isfile(directory + filename):
             async with async_open(directory + filename, "r", encoding="UTF-8") as f:
                 d = await f.read()
-                storedData = pd.read_csv(StringIO(d), names=["Date", *symbolData.columns.values])
-                storedData["Date"] = storedData["Date"].map(lambda x: datetime.strptime(x, "%Y%m%dT"))
-                storedData.set_index("Date", inplace=True)
-                symbolData = pd.concat([storedData, symbolData])
+                stored_data = pd.read_csv(StringIO(d), names=["Date", *symbol_data.columns.values])
+                stored_data["Date"] = stored_data["Date"].map(lambda x: datetime.strptime(x, "%Y%m%dT"))
+                stored_data.set_index("Date", inplace=True)
+                symbol_data = pd.concat([stored_data, symbol_data])
                 # Taken from here: https://stackoverflow.com/a/34297689
                 # As more efficient way to deal with duplicates
-                symbolData = symbolData[~symbolData.index.duplicated(keep='first')]
-                symbolData = symbolData.sort_index()
+                symbol_data = symbol_data[~symbol_data.index.duplicated(keep='last')]
+                symbol_data.reset_index(inplace=True)
+                symbol_data = symbol_data.sort_values(by=['Date'])
+                symbol_data.set_index("Date", inplace=True)
 
         async with async_open(directory + filename, "w") as f:
             s = StringIO()
-            symbolData.to_csv(s, header=False, date_format="%Y%m%dT")
+            symbol_data.to_csv(s, header=False, date_format="%Y%m%dT")
             await f.write(s.getvalue())
 
         # filename = symbol + source[0] + "TOTAL"
         # with open("../data/" + filename + ".csv", "w") as f:
-        #     symbolData["TotalVolume"].to_csv(f, header=False, date_format="%Y%m%dT")
+        #     symbol_data["TotalVolume"].to_csv(f, header=False, date_format="%Y%m%dT")
         #
-        # if len(symbolData["ShortExemptVolume"]) > 0:
+        # if len(symbol_data["ShortExemptVolume"]) > 0:
         #     filename = symbol + source[0] + "SHORT_EXEMPT"
         #     with open("../data/" + filename + ".csv", "w") as f:
-        #         symbolData["ShortExemptVolume"].to_csv(f, header=False, date_format="%Y%m%dT")
+        #         symbol_data["ShortExemptVolume"].to_csv(f, header=False, date_format="%Y%m%dT")
         print(symbol + " -------- updated")
+
 
 if __name__ == "__main__":
     main()
